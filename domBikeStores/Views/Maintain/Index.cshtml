@@ -1,0 +1,562 @@
+﻿@model domBikeStores.ViewModels.MaintainViewModel
+@{
+    ViewBag.Title = "Maintain";
+}
+
+<div class="container-fluid mt-4">
+    <h2 class="text-center mb-4">Pedal & Spoke Maintain Dashboard</h2>
+
+    <div class="row full-height-row">
+
+        <!-- ===== STAFF SECTION ===== -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5>Staff</h5>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createStaffModal">+ Add Staff</button>
+                    </div>
+                    <div class="d-flex">
+                        <form class="form-inline w-100" method="get" asp-action="Index">
+                            <input type="text" name="staffSearch" class="form-control form-control-sm mr-2 w-75"
+                                   value="@Request.QueryString["staffSearch"]" placeholder="Search Staff" />
+                            <button class="btn btn-sm btn-primary">Search</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @foreach (var s in Model.Staffs)
+                    {
+                        <div class="border p-2 mb-2 position-relative">
+                            <strong>@s.first_name @s.last_name</strong><br />
+                            <small>ID: @s.staff_id | Store: @(s.stores?.store_name ?? "None")</small>
+
+                            <div class="position-absolute" style="right:10px; bottom:10px;">
+                                <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editStaffModal_@s.staff_id">Edit</button>
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteStaffModal_@s.staff_id">Delete</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    @if (Model.StaffPage > 1)
+                    {
+                        <a href="@Url.Action("Index", new { staffPage = Model.StaffPage - 1, staffSearch = Request.QueryString["staffSearch"], custPage = Model.CustPage, custSearch = Request.QueryString["custSearch"], prodPage = Model.ProdPage, prodSearch = Request.QueryString["prodSearch"] })" class="btn btn-secondary btn-sm">← Previous</a>
+                    }
+                    else
+                    {
+                        <span></span>
+                    }
+
+                    <span>Page @Model.StaffPage</span>
+
+                    <a href="@Url.Action("Index", new { staffPage = Model.StaffPage + 1, staffSearch = Request.QueryString["staffSearch"], custPage = Model.CustPage, custSearch = Request.QueryString["custSearch"], prodPage = Model.ProdPage, prodSearch = Request.QueryString["prodSearch"] })" class="btn btn-secondary btn-sm">Next →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CUSTOMER SECTION ===== -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5>Customers</h5>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createCustomerModal">+ Add Customer</button>
+                    </div>
+                    <div class="d-flex">
+                        <form class="form-inline w-100" method="get" asp-action="Index">
+                            <input type="text" name="custSearch" class="form-control form-control-sm mr-2 w-75"
+                                   value="@Request.QueryString["custSearch"]" placeholder="Search Customer" />
+                            <button class="btn btn-sm btn-primary">Search</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @foreach (var c in Model.Customers)
+                    {
+                        <div class="border p-2 mb-2 position-relative">
+                            <strong>@c.first_name @c.last_name</strong><br />
+                            <small>ID: @c.customer_id | Email: @c.email</small>
+
+                            <div class="position-absolute" style="right:10px; bottom:10px;">
+                                <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editCustomerModal_@c.customer_id">Edit</button>
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteCustomerModal_@c.customer_id">Delete</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    @if (Model.CustPage > 1)
+                    {
+                        <a href="@Url.Action("Index", new { staffPage = Model.StaffPage, staffSearch = Request.QueryString["staffSearch"], custPage = Model.CustPage - 1, custSearch = Request.QueryString["custSearch"], prodPage = Model.ProdPage, prodSearch = Request.QueryString["prodSearch"] })" class="btn btn-secondary btn-sm">← Previous</a>
+                    }
+                    else
+                    {
+                        <span></span>
+                    }
+
+                    <span>Page @Model.CustPage</span>
+
+                    <a href="@Url.Action("Index", new { staffPage = Model.StaffPage, staffSearch = Request.QueryString["staffSearch"], custPage = Model.CustPage + 1, custSearch = Request.QueryString["custSearch"], prodPage = Model.ProdPage, prodSearch = Request.QueryString["prodSearch"] })" class="btn btn-secondary btn-sm">Next →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PRODUCT SECTION ===== -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5>Products</h5>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createProductModal">+ Add Product</button>
+                    </div>
+                    <div class="d-flex">
+                        <form class="form-inline w-100" method="get" asp-action="Index">
+                            <input type="text" name="prodSearch" class="form-control form-control-sm mr-2 w-75"
+                                   value="@Request.QueryString["prodSearch"]" placeholder="Search Product" />
+                            <button class="btn btn-sm btn-primary">Search</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @foreach (var p in Model.Products)
+                    {
+                        <div class="border p-2 mb-2 position-relative d-flex align-items-center">
+                            <img src="~/Content/Images/@(((p.product_id - 1) % 18) + 1).jpeg" class="img-thumbnail mr-2" style="width:75px; height:75px;" />
+                            <div>
+                                <strong>@p.product_name</strong><br />
+                                <small>Price: @String.Format("{0:C}", p.list_price)</small>
+                            </div>
+
+                            <div class="position-absolute" style="right:10px; bottom:10px;">
+                                <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editProductModal_@p.product_id">Edit</button>
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteProductModal_@p.product_id">Delete</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    @if (Model.ProdPage > 1)
+                    {
+                        <a href="@Url.Action("Index", new { staffPage = Model.StaffPage, staffSearch = Request.QueryString["staffSearch"], custPage = Model.CustPage, custSearch = Request.QueryString["custSearch"], prodPage = Model.ProdPage - 1, prodSearch = Request.QueryString["prodSearch"] })" class="btn btn-secondary btn-sm">← Previous</a>
+                    }
+                    else
+                    {
+                        <span></span>
+                    }
+
+                    <span>Page @Model.ProdPage</span>
+
+                    <a href="@Url.Action("Index", new { staffPage = Model.StaffPage, staffSearch = Request.QueryString["staffSearch"], custPage = Model.CustPage, custSearch = Request.QueryString["custSearch"], prodPage = Model.ProdPage + 1, prodSearch = Request.QueryString["prodSearch"] })" class="btn btn-secondary btn-sm">Next →</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== STAFF MODALS ===== -->
+<!-- Create -->
+<div class="modal fade" id="createStaffModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            @using (Html.BeginForm("CreateStaff", "Maintain", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5>Add New Staff</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label>First Name</label>
+                    <input name="first_name" class="form-control mb-2" placeholder="First Name" required />
+
+                    <label>Last Name</label>
+                    <input name="last_name" class="form-control mb-2" placeholder="Last Name" required />
+
+                    <label>Email</label>
+                    <input name="email" type="email" class="form-control mb-2" placeholder="Email" required />
+
+                    <label>Phone</label>
+                    <input name="phone" class="form-control mb-2" placeholder="Phone" />
+
+                    <label>Store</label>
+                    <select name="store_id" class="form-control mb-2" required>
+                        @foreach (var store in Model.Stores)
+                        {
+                            <option value="@store.store_id">@store.store_name</option>
+                        }
+                    </select>
+
+                    <label>Active</label>
+                    <select name="active" class="form-control mb-2" required>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+
+                    <label>Manager (optional)</label>
+                    <select name="manager_id" class="form-control mb-2">
+                        <option value="">-- None --</option>
+                        @foreach (var m in Model.Staffs)
+                        {
+                            <option value="@m.staff_id">@m.first_name @m.last_name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Add</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* Edit/Delete *@
+@foreach (var s in Model.Staffs)
+{
+    <!-- edit -->
+    <div class="modal fade" id="editStaffModal_@s.staff_id">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                @using (Html.BeginForm("UpdateStaff", "Maintain", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5>Edit Staff</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="hidden" name="staff_id" value="@s.staff_id" />
+
+                        <label>First Name</label>
+                        <input name="first_name" value="@s.first_name" class="form-control mb-2" required />
+
+                        <label>Last Name</label>
+                        <input name="last_name" value="@s.last_name" class="form-control mb-2" required />
+
+                        <label>Email</label>
+                        <input name="email" type="email" value="@s.email" class="form-control mb-2" required />
+
+                        <label>Phone</label>
+                        <input name="phone" value="@s.phone" class="form-control mb-2" />
+
+                        <label>Store</label>
+                        <select name="store_id" class="form-control mb-2" required>
+                            @foreach (var store in Model.Stores)
+                            {
+                                <option value="@store.store_id" @(store.store_id == s.store_id ? "selected" : "")>@store.store_name</option>
+                            }
+                        </select>
+
+                        <label>Active</label>
+                        <select name="active" class="form-control mb-2" required>
+                            <option value="1" @(s.active == 1 ? "selected" : "")>Yes</option>
+                            <option value="0" @(s.active == 0 ? "selected" : "")>No</option>
+                        </select>
+
+                        <label>Manager (optional)</label>
+                        <select name="manager_id" class="form-control mb-2">
+                            <option value="">-- None --</option>
+                            @foreach (var m in Model.Staffs.Where(st => st.staff_id != s.staff_id))
+                            {
+                                <option value="@m.staff_id" @(m.staff_id == s.manager_id ? "selected" : "")>@m.first_name @m.last_name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Update</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- delete -->
+    <div class="modal fade" id="deleteStaffModal_@s.staff_id">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                @using (Html.BeginForm("DeleteStaff", "Maintain", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5>Delete Staff</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="hidden" name="id" value="@s.staff_id" />
+                        Are you sure you want to delete <strong>@s.first_name @s.last_name</strong>?
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ===== CUSTOMER MODALS ===== -->
+<!-- Create -->
+<div class="modal fade" id="createCustomerModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            @using (Html.BeginForm("CreateCustomer", "Maintain", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5>Add New Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <label>First Name</label>
+                    <input name="first_name" class="form-control mb-2" placeholder="First Name" required />
+
+                    <label>Last Name</label>
+                    <input name="last_name" class="form-control mb-2" placeholder="Last Name" required />
+
+                    <label>Email</label>
+                    <input name="email" type="email" class="form-control mb-2" placeholder="Email" required />
+
+                    <label>Phone</label>
+                    <input name="phone" class="form-control mb-2" placeholder="Phone" />
+
+                    <label>Street</label>
+                    <input name="street" class="form-control mb-2" placeholder="Street" />
+
+                    <label>City</label>
+                    <input name="city" class="form-control mb-2" placeholder="City" />
+
+                    <label>State</label>
+                    <input name="state" class="form-control mb-2" placeholder="State" />
+
+                    <label>ZIP Code</label>
+                    <input name="zip_code" class="form-control mb-2" placeholder="ZIP Code" />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Add</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* Edit/Delete *@
+@foreach (var c in Model.Customers)
+{
+    <!-- edit -->
+    <div class="modal fade" id="editCustomerModal_@c.customer_id">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                @using (Html.BeginForm("UpdateCustomer", "Maintain", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5>Edit Customer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="hidden" name="customer_id" value="@c.customer_id" />
+
+                        <label>First Name</label>
+                        <input name="first_name" value="@c.first_name" class="form-control mb-2" required />
+
+                        <label>Last Name</label>
+                        <input name="last_name" value="@c.last_name" class="form-control mb-2" required />
+
+                        <label>Email</label>
+                        <input name="email" type="email" value="@c.email" class="form-control mb-2" required />
+
+                        <label>Phone</label>
+                        <input name="phone" value="@c.phone" class="form-control mb-2" />
+
+                        <label>Street</label>
+                        <input name="street" value="@c.street" class="form-control mb-2" placeholder="Street" />
+
+                        <label>City</label>
+                        <input name="city" value="@c.city" class="form-control mb-2" placeholder="City" />
+
+                        <label>State</label>
+                        <input name="state" value="@c.state" class="form-control mb-2" placeholder="State" />
+
+                        <label>ZIP Code</label>
+                        <input name="zip_code" value="@c.zip_code" class="form-control mb-2" placeholder="ZIP Code" />
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Update</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- delete -->
+    <div class="modal fade" id="deleteCustomerModal_@c.customer_id">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                @using (Html.BeginForm("DeleteCustomer", "Maintain", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5>Delete Customer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="hidden" name="id" value="@c.customer_id" />
+                        Are you sure you want to delete <strong>@c.first_name @c.last_name</strong>?
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ===== PRODUCT MODALS ===== -->
+<!-- Create -->
+<div class="modal fade" id="createProductModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            @using (Html.BeginForm("CreateProduct", "Maintain", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5>Add New Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label>Product Name</label>
+                    <input name="product_name" class="form-control mb-2" placeholder="Product Name" required />
+
+                    <label>Brand</label>
+                    <select name="brand_id" class="form-control mb-2" required>
+                        @foreach (var b in Model.Brands)
+                        {
+                            <option value="@b.brand_id">@b.brand_name</option>
+                        }
+                    </select>
+
+                    <label>Category</label>
+                    <select name="category_id" class="form-control mb-2" required>
+                        @foreach (var c in Model.Categories)
+                        {
+                            <option value="@c.category_id">@c.category_name</option>
+                        }
+                    </select>
+
+                    <label>Model Year</label>
+                    <input name="model_year" type="number" min="1900" max="@DateTime.Now.Year" class="form-control mb-2" placeholder="e.g., 2025" required />
+
+                    <label>List Price</label>
+                    <input name="list_price" type="number" step="0.01" min="0" class="form-control mb-2" placeholder="e.g., 999.99" required />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Add</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* Edit/Delete Modals *@
+@foreach (var p in Model.Products)
+{
+    <!-- edit -->
+    <div class="modal fade" id="editProductModal_@p.product_id">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                @using (Html.BeginForm("UpdateProduct", "Maintain", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5>Edit Product</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="product_id" value="@p.product_id" />
+
+                        <label>Product Name</label>
+                        <input name="product_name" value="@p.product_name" class="form-control mb-2" required />
+
+                        <label>Brand</label>
+                        <select name="brand_id" class="form-control mb-2" required>
+                            @foreach (var b in Model.Brands)
+                            {
+                                <option value="@b.brand_id" @(b.brand_id == p.brand_id ? "selected" : "")>@b.brand_name</option>
+                            }
+                        </select>
+
+                        <label>Category</label>
+                        <select name="category_id" class="form-control mb-2" required>
+                            @foreach (var c in Model.Categories)
+                            {
+                                <option value="@c.category_id" @(c.category_id == p.category_id ? "selected" : "")>@c.category_name</option>
+                            }
+                        </select>
+
+                        <label>Model Year</label>
+                        <input name="model_year" type="number" min="1900" max="@DateTime.Now.Year" value="@p.model_year" class="form-control mb-2" required />
+
+                        <label>List Price</label>
+                        <input name="list_price" type="number" step="0.01" min="0" value="@p.list_price" class="form-control mb-2" required />
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Update</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- delete -->
+    <div class="modal fade" id="deleteProductModal_@p.product_id">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                @using (Html.BeginForm("DeleteProduct", "Maintain", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5>Delete Product</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="id" value="@p.product_id" />
+                        Are you sure you want to delete <strong>@p.product_name</strong>?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}

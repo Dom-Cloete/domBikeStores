@@ -1,0 +1,276 @@
+﻿@model domBikeStores.ViewModels.ReportViewModel
+@{
+    ViewBag.Title = "Reports";
+}
+
+<div class="container mt-4 body-content">
+    <h2 class="text-center mb-4"> Pedal & Spoke @Model.ReportTitle</h2>
+
+    <!-- Top 20 Products -->
+    <div class="card mb-4">
+        <div class="card-header">Top 20 Products Sold</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm table-striped table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.TopProducts)
+                            {
+                                <tr>
+                                    <td>@p.ProductName</td>
+                                    <td>@p.QuantitySold</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6 d-flex justify-content-center align-items-center">
+                    <canvas id="topProductsChart" style="max-height:300px; width:100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top 3 Stores -->
+    <div class="card mb-4">
+        <div class="card-header">Top 3 Performing Stores</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm table-striped table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Store</th>
+                                <th>Total Products Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in Model.TopStores)
+                            {
+                                <tr>
+                                    <td>@s.StoreName</td>
+                                    <td>@s.TotalProductsSold</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6 d-flex justify-content-center align-items-center">
+                    <canvas id="topStoresChart" style="max-height:300px; width:100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Report Section -->
+    <div class="card mb-4">
+        <div class="card-header">Save Report</div>
+        <div class="card-body">
+            @using (Html.BeginForm("SaveReport", "Report", FormMethod.Post, new { enctype = "multipart/form-data", id = "saveReportForm" }))
+            {
+                <input type="hidden" id="chartDataProducts" name="chartDataProducts" />
+                <input type="hidden" id="chartDataStores" name="chartDataStores" />
+
+                <div class="mb-3">
+                    <label class="form-label">Select Report</label>
+                    <select id="reportSelector" name="ReportTitle" class="form-select" required>
+                        <option value="Top 20 Products">Top 20 Products Sold</option>
+                        <option value="Top 3 Stores">Top 3 Performing Stores</option>
+                        <option value="Full Summary">Full Report (Both)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Filename</label>
+                    <input type="text" name="FileName" class="form-control" placeholder="Enter filename..." required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">File Type</label>
+                    <select name="FileType" class="form-select" required>
+                        <option value="docx">Word Document (.docx)</option>
+                        <option value="xlsx">Excel Spreadsheet (.xlsx)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea id="description" name="Description" class="form-control" rows="4"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Report</button>
+            }
+        </div>
+    </div>
+
+    <!-- Document Archive -->
+    <div class="card mb-4">
+        <div class="card-header">Document Archive</div>
+        <div class="card-body">
+            @if (TempData["Message"] != null)
+            {
+                <div class="alert alert-success">@TempData["Message"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+
+            <table class="table table-bordered table-hover" id="archiveTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Filename</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Date Saved</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var file in Model.DocumentArchive)
+                    {
+                        <tr>
+                            <td>@file.FileName</td>
+                            <td>@file.FileType</td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    @using (Html.BeginForm("UpdateDescription", "Report", FormMethod.Post, new { @class = "updateDescriptionForm" }))
+                                    {
+                                        <input type="hidden" name="fileName" value="@file.FileName" />
+                                        <textarea name="description" class="form-control summernote" rows="3" readonly>@file.Description</textarea>
+                                        <div class="mt-1">
+                                            <button type="button" class="btn btn-primary btn-sm toggleEdit">Edit</button>
+                                            <button type="submit" class="btn btn-secondary btn-sm saveDescription" style="display:none;">Save</button>
+                                        </div>
+                                    }
+                                </div>
+                            </td>
+                            <td>@file.DateSaved.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <a href="@Url.Action("Download", "Report", new { fileName = file.FileName })" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                                <a href="@Url.Action("DeleteAndRedirect", "Report", new { fileName = file.FileName })"
+                                   class="btn btn-danger btn-sm deleteReport"
+                                   target="deleteTargetFrame"
+                                   onclick="return confirm('Delete this report?');">
+                                    <i class="bi bi-trash"></i> Delete
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <iframe id="deleteTargetFrame" name="deleteTargetFrame" style="display:none;"></iframe>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#description').summernote({
+                placeholder: 'Enter report description...',
+                tabsize: 2,
+                height: 150,
+                toolbar: [
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['insert', ['link']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ]
+            });
+
+            $('.summernote').summernote({
+                placeholder: 'Update description...',
+                tabsize: 2,
+                height: 100,
+                toolbar: [
+                    ['style', ['bold', 'italic', 'underline', 'clear']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['insert', ['link']],
+                    ['view', ['fullscreen', 'codeview', 'help']]
+                ],
+                disableResizeEditor: true,
+                airMode: false
+            });
+
+            $('.summernote').summernote('disable');
+
+            $('.toggleEdit').on('click', function () {
+                var $btn = $(this);
+                var $form = $btn.closest('form');
+                var $textarea = $form.find('textarea.summernote');
+                var $saveBtn = $form.find('.saveDescription');
+
+                if ($btn.text() === 'Edit') {
+                    $textarea.summernote('enable');
+                    $btn.text('Cancel');
+                    $saveBtn.show();
+                } else {
+                    $textarea.summernote('disable');
+                    $textarea.summernote('code', $textarea.prop('defaultValue'));
+                    $btn.text('Edit');
+                    $saveBtn.hide();
+                }
+            });
+
+            const prodLabels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopProducts.Select(p => p.ProductName)));
+            const prodData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopProducts.Select(p => p.QuantitySold)));
+            const storeLabels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopStores.Select(s => s.StoreName)));
+            const storeData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopStores.Select(s => s.TotalProductsSold)));
+
+            const prodCtx = document.getElementById('topProductsChart').getContext('2d');
+            const storeCtx = document.getElementById('topStoresChart').getContext('2d');
+
+            const topProductsChart = new Chart(prodCtx, {
+                type: '@Model.ChartTypeProducts',
+                data: { labels: prodLabels, datasets: [{ label: 'Quantity Sold', data: prodData, backgroundColor: 'rgba(54,162,235,0.6)', borderColor: 'rgba(54,162,235,1)', borderWidth: 1 }] },
+                options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+            });
+
+            const topStoresChart = new Chart(storeCtx, {
+                type: '@Model.ChartTypeStores',
+                data: { labels: storeLabels, datasets: [{ label: 'Products Sold', data: storeData.map(Number), backgroundColor: ['rgba(75,192,192,0.7)','rgba(255,205,86,0.7)','rgba(255,99,132,0.7)'], borderColor: '#fff', borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Top 3 Performing Stores' } } }
+            });
+
+            $("#saveReportForm").on("submit", function () {
+                const selected = $('#reportSelector').val();
+                const prodImg = topProductsChart.toBase64Image();
+                const storeImg = topStoresChart.toBase64Image();
+
+                if (selected === 'Top 20 Products') {
+                    $("#chartDataProducts").val(prodImg);
+                    $("#chartDataStores").val('');
+                } else if (selected === 'Top 3 Stores') {
+                    $("#chartDataProducts").val('');
+                    $("#chartDataStores").val(storeImg);
+                } else {
+                    $("#chartDataProducts").val(prodImg);
+                    $("#chartDataStores").val(storeImg);
+                }
+            });
+
+            $(".deleteReport").on("click", function () {
+                const row = $(this).closest("tr");
+                const filename = row.data("filename");
+
+                $("#deleteTargetFrame").off("load").on("load", function () {
+                    row.remove();
+                });
+            });
+        });
+    </script>
+}
